@@ -1,0 +1,117 @@
+import tkinter as tk
+from tkinter import messagebox
+from PIL import Image, ImageTk
+import os
+
+class GameInterface(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("Juego de Habilidades Lingüísticas")
+        self.configure(bg="#FFCC66")  # Fondo amarillo claro
+
+        # Obteniendo las dimensiones de la pantalla
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+
+        # Definiendo las dimensiones de la ventana (la mitad del tamaño de la pantalla)
+        window_width = screen_width // 2
+        window_height = screen_height // 2
+        x_coordinate = (screen_width - window_width) // 2
+        y_coordinate = (screen_height - window_height) // 2
+        self.geometry(f"{window_width}x{window_height}+{x_coordinate}+{y_coordinate}")
+
+        self.category_label = tk.Label(self, text="Selecciona una categoría:", bg="#FFCC66", fg="#333333", font=("Arial", 14))
+        self.category_label.pack()
+
+        self.category_var = tk.StringVar()
+        self.category_var.set("")
+
+        self.button_width = 120  # Ancho fijo para todos los botones
+        self.button_height = 120  # Alto fijo para todos los botones
+
+        self.aseo_image_path = os.path.join("images", "aseo_image.png")
+        self.aseo_image = Image.open(self.aseo_image_path)
+        self.aseo_image.thumbnail((self.button_width - 20, self.button_height - 40))  # Redimensionar la imagen
+        self.aseo_image = ImageTk.PhotoImage(self.aseo_image)  # Convertir la imagen a PhotoImage
+        self.aseo_button = tk.Button(self, text="Útiles de Aseo", image=self.aseo_image, compound="top", command=lambda: self.select_category("aseo"), bg="#FF9966", fg="white", font=("Arial", 12), width=self.button_width, height=self.button_height)
+        self.aseo_button.pack(pady=5)
+
+        self.transport_image_path = os.path.join("images", "transport_image.png")
+        self.transport_image = Image.open(self.transport_image_path)
+        self.transport_image.thumbnail((self.button_width - 20, self.button_height - 40))  # Redimensionar la imagen
+        self.transport_image = ImageTk.PhotoImage(self.transport_image)  # Convertir la imagen a PhotoImage
+        self.transport_button = tk.Button(self, text="Medios de\nTransporte", image=self.transport_image, compound="top", command=lambda: self.select_category("transporte"), bg="#6699FF", fg="white", font=("Arial", 12), width=self.button_width, height=self.button_height)
+        self.transport_button.pack(pady=5)
+
+        self.aseo_button.image = self.aseo_image
+        self.transport_button.image = self.transport_image
+
+        # Calcular el nuevo ancho para el botón de salir
+        close_button_width = int(self.button_width * 0.080)
+
+        self.close_button = tk.Button(self, text="Salir", command=self.quit_application, bg="#FF0000", fg="white", font=("Arial", 10), width=close_button_width, height=1)
+        self.close_button.pack(pady=5)
+
+    def select_category(self, category):
+        self.category_var.set(category)
+        selected_category = self.category_var.get()
+        if selected_category == "":
+            messagebox.showerror("Error", "Por favor, selecciona una categoría antes de continuar.")
+        else:
+            self.withdraw()  # Oculta la ventana actual antes de abrir una nueva
+            self.difficulty_window = DifficultySelection(selected_category, self)
+            self.difficulty_window.grab_set()  # Evita que se interactúe con la ventana principal
+            self.difficulty_window.protocol("WM_DELETE_WINDOW", self.show_window)  # Define la acción al cerrar la ventana secundaria
+            self.difficulty_window.mainloop()
+
+    def show_window(self):
+        self.deiconify()  # Muestra la ventana principal nuevamente
+
+    def quit_application(self):
+        self.destroy()
+
+class DifficultySelection(tk.Toplevel):
+    def __init__(self, category, parent):
+        super().__init__()
+        self.title("Selección de Dificultad")
+        self.configure(bg="#66FF99")  # Fondo verde claro
+        self.category = category
+        self.parent = parent  # Referencia a la ventana principal
+
+        # Obteniendo las dimensiones de la pantalla
+        screen_width = self.winfo_screenwidth()
+        screen_height = self.winfo_screenheight()
+
+        # Definiendo las dimensiones de la ventana (la mitad del tamaño de la pantalla)
+        window_width = screen_width // 2
+        window_height = screen_height // 2
+        x_coordinate = (screen_width - window_width) // 2
+        y_coordinate = (screen_height - window_height) // 2
+        self.geometry(f"{window_width}x{window_height}+{x_coordinate}+{y_coordinate}")
+
+        self.difficulty_label = tk.Label(self, text="Selecciona el nivel de dificultad:", bg="#66FF99", fg="#333333", font=("Arial", 14))
+        self.difficulty_label.pack()
+
+        self.easy_button = tk.Button(self, text="Fácil", command=self.start_game_easy, bg="#FF6666", fg="white", font=("Arial", 12))
+        self.easy_button.pack(pady=5)
+
+        self.medium_button = tk.Button(self, text="Medio (Bloqueado)", state="disabled", bg="#FF6666", fg="white", font=("Arial", 12))
+        self.medium_button.pack(pady=5)
+
+        self.hard_button = tk.Button(self, text="Difícil (Bloqueado)", state="disabled", bg="#FF6666", fg="white", font=("Arial", 12))
+        self.hard_button.pack(pady=5)
+
+        self.back_button = tk.Button(self, text="Atrás", command=self.back_to_category_selection, bg="#6699FF", fg="white", font=("Arial", 12))
+        self.back_button.pack(pady=5)
+
+    def start_game_easy(self):
+        messagebox.showinfo("Mensaje", "Comenzando el juego en nivel fácil")
+        # Aquí deberías iniciar el juego en el nivel fácil
+
+    def back_to_category_selection(self):
+        self.destroy()  # Cierra la ventana secundaria
+        self.parent.deiconify()  # Muestra la ventana principal nuevamente
+
+if __name__ == "__main__":
+    app = GameInterface()
+    app.mainloop()
